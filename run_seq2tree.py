@@ -33,7 +33,7 @@ fold_pairs.append(pairs[(fold_size * 4):])
 
 best_acc_fold = []
 
-for fold in range(5):
+for fold in range(1):
     pairs_tested = []
     pairs_trained = []
     for fold_t in range(5):
@@ -76,10 +76,6 @@ for fold in range(5):
         generate_num_ids.append(output_lang.word2index[num])
 
     for epoch in range(n_epochs):
-        encoder_scheduler.step()
-        predict_scheduler.step()
-        generate_scheduler.step()
-        merge_scheduler.step()
         loss_total = 0
         input_batches, input_lengths, output_batches, output_lengths, nums_batches, num_stack_batches, num_pos_batches, num_size_batches = prepare_train_batch(train_pairs, batch_size)
         print("fold:", fold + 1)
@@ -92,6 +88,11 @@ for fold in range(5):
                 encoder_optimizer, predict_optimizer, generate_optimizer, merge_optimizer, output_lang, num_pos_batches[idx])
             loss_total += loss
 
+        encoder_scheduler.step()
+        predict_scheduler.step()
+        generate_scheduler.step()
+        merge_scheduler.step()
+        
         print("loss:", loss_total / len(input_lengths))
         print("training time", time_since(time.time() - start))
         print("--------------------------------")
@@ -119,6 +120,8 @@ for fold in range(5):
             torch.save(merge.state_dict(), "models/merge")
             if epoch == n_epochs - 1:
                 best_acc_fold.append((equation_ac, value_ac, eval_total))
+
+        break
 
 a, b, c = 0, 0, 0
 for bl in range(len(best_acc_fold)):
