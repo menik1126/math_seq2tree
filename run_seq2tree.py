@@ -5,14 +5,21 @@ import time
 import torch.optim
 from src.expressions_transfer import *
 
-batch_size = 64
+from transformers import AutoTokenizer, XLNetForTokenClassification
+from tqdm import tqdm
+
+batch_size = 16
 embedding_size = 128
 hidden_size = 512
-n_epochs = 80
-learning_rate = 1e-3
+n_epochs = 12
+learning_rate = 5e-5
 weight_decay = 1e-5
 beam_size = 5
 n_layers = 2
+
+tokenizer = AutoTokenizer.from_pretrained('hfl/chinese-xlnet-base')
+tokenizer.add_special_tokens({'additional_special_tokens':['NUM']})
+embedding_size = len(tokenizer)
 
 data = load_raw_data("data/Math_23K.json")
 
@@ -33,7 +40,7 @@ fold_pairs.append(pairs[(fold_size * 4):])
 
 best_acc_fold = []
 
-for fold in range(1):
+for fold in range(5):
     pairs_tested = []
     pairs_trained = []
     for fold_t in range(5):
@@ -42,7 +49,7 @@ for fold in range(1):
         else:
             pairs_trained += fold_pairs[fold_t]
 
-    input_lang, output_lang, train_pairs, test_pairs = prepare_data(pairs_trained, pairs_tested, 5, generate_nums,
+    input_lang, output_lang, train_pairs, test_pairs = prepare_data(tokenizer, pairs_trained, pairs_tested, 5, generate_nums,
                                                                     copy_nums, tree=True)
     # Initialize models
     encoder = EncoderSeq(input_size=input_lang.n_words, embedding_size=embedding_size, hidden_size=hidden_size,
@@ -120,8 +127,6 @@ for fold in range(1):
             torch.save(merge.state_dict(), "models/merge")
             if epoch == n_epochs - 1:
                 best_acc_fold.append((equation_ac, value_ac, eval_total))
-
-        break
 
 a, b, c = 0, 0, 0
 for bl in range(len(best_acc_fold)):

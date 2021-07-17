@@ -625,8 +625,13 @@ def indexes_from_sentence(lang, sentence, tree=False):
         res.append(lang.word2index["EOS"])
     return res
 
+def indeces_from_sentence_via_tokenizer(tokenizer, sentence):
+    return  tokenizer.convert_tokens_to_ids(sentence)\
+            + [tokenizer.sep_token_id]\
+            +[tokenizer.cls_token_id]\
 
-def prepare_data(pairs_trained, pairs_tested, trim_min_count, generate_nums, copy_nums, tree=False):
+# 构造词表和数据集
+def prepare_data(tokenizer, pairs_trained, pairs_tested, trim_min_count, generate_nums, copy_nums, tree=False):
     input_lang = Lang()
     output_lang = Lang()
     train_pairs = []
@@ -663,11 +668,11 @@ def prepare_data(pairs_trained, pairs_tested, trim_min_count, generate_nums, cop
                 num_stack.append([_ for _ in range(len(pair[2]))])
 
         num_stack.reverse()
-        input_cell = indexes_from_sentence(input_lang, pair[0])
+        input_cell = indeces_from_sentence_via_tokenizer(tokenizer, pair[0])
         output_cell = indexes_from_sentence(output_lang, pair[1], tree)
         # train_pairs.append((input_cell, len(input_cell), output_cell, len(output_cell),
         #                     pair[2], pair[3], num_stack, pair[4]))
-        train_pairs.append((input_cell, len(input_cell), output_cell, len(output_cell),
+        train_pairs.append((input_cell, len(input_cell)-2, output_cell, len(output_cell),
                             pair[2], pair[3], num_stack))
     print('Indexed %d words in input language, %d words in output' % (input_lang.n_words, output_lang.n_words))
     print('Number of training data %d' % (len(train_pairs)))
@@ -688,11 +693,11 @@ def prepare_data(pairs_trained, pairs_tested, trim_min_count, generate_nums, cop
                 num_stack.append([_ for _ in range(len(pair[2]))])
 
         num_stack.reverse()
-        input_cell = indexes_from_sentence(input_lang, pair[0])
+        input_cell = indeces_from_sentence_via_tokenizer(tokenizer, pair[0])
         output_cell = indexes_from_sentence(output_lang, pair[1], tree)
         # train_pairs.append((input_cell, len(input_cell), output_cell, len(output_cell),
         #                     pair[2], pair[3], num_stack, pair[4]))
-        test_pairs.append((input_cell, len(input_cell), output_cell, len(output_cell),
+        test_pairs.append((input_cell, len(input_cell)-2, output_cell, len(output_cell),
                            pair[2], pair[3], num_stack))
     print('Number of testind data %d' % (len(test_pairs)))
     return input_lang, output_lang, train_pairs, test_pairs
