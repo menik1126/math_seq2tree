@@ -670,7 +670,7 @@ def prepare_data(tokenizer, pairs_trained, pairs_tested, trim_min_count, generat
         output_cell = indexes_from_sentence(output_lang, pair[1], tree)
         # train_pairs.append((input_cell, len(input_cell), output_cell, len(output_cell),
         #                     pair[2], pair[3], num_stack, pair[4]))
-        train_pairs.append((input_cell, len(input_cell), output_cell, len(output_cell),
+        train_pairs.append((input_cell, len(input_cell)-2, output_cell, len(output_cell),
                             pair[2], pair[3], num_stack))
     print('Indexed %d words in input language, %d words in output' % (input_lang.n_words, output_lang.n_words))
     print('Number of training data %d' % (len(train_pairs)))
@@ -695,7 +695,7 @@ def prepare_data(tokenizer, pairs_trained, pairs_tested, trim_min_count, generat
         output_cell = indexes_from_sentence(output_lang, pair[1], tree)
         # train_pairs.append((input_cell, len(input_cell), output_cell, len(output_cell),
         #                     pair[2], pair[3], num_stack, pair[4]))
-        test_pairs.append((input_cell, len(input_cell), output_cell, len(output_cell),
+        test_pairs.append((input_cell, len(input_cell)-2, output_cell, len(output_cell),
                            pair[2], pair[3], num_stack))
     print('Number of testind data %d' % (len(test_pairs)))
     return input_lang, output_lang, train_pairs, test_pairs

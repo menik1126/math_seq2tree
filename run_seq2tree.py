@@ -17,7 +17,11 @@ weight_decay = 1e-5
 beam_size = 5
 n_layers = 2
 
+<<<<<<< HEAD
 tokenizer = AutoTokenizer.from_pretrained('bert-base-chinese')
+=======
+tokenizer = AutoTokenizer.from_pretrained('hfl/chinese-xlnet-base')
+>>>>>>> d677bf71248090c3777ba15235d94fd5c149c976
 tokenizer.add_special_tokens({'additional_special_tokens':['NUM']})
 embedding_size = len(tokenizer)
 

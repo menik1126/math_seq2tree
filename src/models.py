@@ -172,9 +172,15 @@ class EncoderSeq(nn.Module):
         # self.embedding = nn.Embedding(input_size, embedding_size, padding_idx=0)
         # self.em_dropout = nn.Dropout(dropout)
         # self.gru_pade = nn.GRU(embedding_size, hidden_size, n_layers, dropout=dropout, bidirectional=True)
+<<<<<<< HEAD
         self.enc = AutoModel.from_pretrained('bert-base-chinese')
         self.enc.resize_token_embeddings(embedding_size)
         self.out = nn.Sequential(nn.ReLU(), nn.Linear(self.enc.config.hidden_size, self.hidden_size))
+=======
+        self.enc = AutoModel.from_pretrained('hfl/chinese-xlnet-base')
+        self.enc.resize_token_embeddings(embedding_size)
+        self.out = nn.Sequential(nn.ReLU(), nn.Linear(self.enc.config.d_model, self.hidden_size))
+>>>>>>> d677bf71248090c3777ba15235d94fd5c149c976
         
 
     def forward(self, input_seqs, input_lengths, hidden=None):
