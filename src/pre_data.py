@@ -275,7 +275,7 @@ def transfer_num(data):  # transfer num into "NUM"
     copy_nums = 0
     for d in data:
         nums = []
-        input_seq = []
+        input_seq = ['[CLS]']
         seg = d["segmented_text"].strip().split(" ")
         equations = d["equation"][2:]
 
@@ -287,7 +287,8 @@ def transfer_num(data):  # transfer num into "NUM"
                 if pos.end() < len(s):
                     input_seq.append(s[pos.end():])
             else:
-                input_seq.append(s)
+                input_seq.extend(list(s))
+        input_seq.append('[SEP]')
         if copy_nums < len(nums):
             copy_nums = len(nums)
 
@@ -625,8 +626,10 @@ def indexes_from_sentence(lang, sentence, tree=False):
         res.append(lang.word2index["EOS"])
     return res
 
+def indeces_from_sentence_via_tokenizer(tokenizer, sentence):
+    return  tokenizer.convert_tokens_to_ids(sentence)
 
-def prepare_data(pairs_trained, pairs_tested, trim_min_count, generate_nums, copy_nums, tree=False):
+def prepare_data(tokenizer, pairs_trained, pairs_tested, trim_min_count, generate_nums, copy_nums, tree=False):
     input_lang = Lang()
     output_lang = Lang()
     train_pairs = []
@@ -663,7 +666,7 @@ def prepare_data(pairs_trained, pairs_tested, trim_min_count, generate_nums, cop
                 num_stack.append([_ for _ in range(len(pair[2]))])
 
         num_stack.reverse()
-        input_cell = indexes_from_sentence(input_lang, pair[0])
+        input_cell = indeces_from_sentence_via_tokenizer(tokenizer, pair[0])
         output_cell = indexes_from_sentence(output_lang, pair[1], tree)
         # train_pairs.append((input_cell, len(input_cell), output_cell, len(output_cell),
         #                     pair[2], pair[3], num_stack, pair[4]))
@@ -688,7 +691,7 @@ def prepare_data(pairs_trained, pairs_tested, trim_min_count, generate_nums, cop
                 num_stack.append([_ for _ in range(len(pair[2]))])
 
         num_stack.reverse()
-        input_cell = indexes_from_sentence(input_lang, pair[0])
+        input_cell = indeces_from_sentence_via_tokenizer(tokenizer, pair[0])
         output_cell = indexes_from_sentence(output_lang, pair[1], tree)
         # train_pairs.append((input_cell, len(input_cell), output_cell, len(output_cell),
         #                     pair[2], pair[3], num_stack, pair[4]))

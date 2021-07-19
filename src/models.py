@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from transformers import AutoModel
 
 
 class EncoderRNN(nn.Module):
@@ -168,21 +169,35 @@ class EncoderSeq(nn.Module):
         self.n_layers = n_layers
         self.dropout = dropout
 
-        self.embedding = nn.Embedding(input_size, embedding_size, padding_idx=0)
-        self.em_dropout = nn.Dropout(dropout)
-        self.gru_pade = nn.GRU(embedding_size, hidden_size, n_layers, dropout=dropout, bidirectional=True)
+        # self.embedding = nn.Embedding(input_size, embedding_size, padding_idx=0)
+        # self.em_dropout = nn.Dropout(dropout)
+        # self.gru_pade = nn.GRU(embedding_size, hidden_size, n_layers, dropout=dropout, bidirectional=True)
+        self.enc = AutoModel.from_pretrained('bert-base-chinese')
+        self.enc.resize_token_embeddings(embedding_size)
+        self.out = nn.Sequential(nn.ReLU(), nn.Linear(self.enc.config.hidden_size, self.hidden_size))
+        
 
     def forward(self, input_seqs, input_lengths, hidden=None):
-        # Note: we run this all at once (over multiple batches of multiple sequences)
-        embedded = self.embedding(input_seqs)  # S x B x E
-        embedded = self.em_dropout(embedded)
-        packed = torch.nn.utils.rnn.pack_padded_sequence(embedded, input_lengths)
-        pade_hidden = hidden
-        pade_outputs, pade_hidden = self.gru_pade(packed, pade_hidden)
-        pade_outputs, _ = torch.nn.utils.rnn.pad_packed_sequence(pade_outputs)
+        # # Note: we run this all at once (over multiple batches of multiple sequences)
+        # embedded = self.embedding(input_seqs)  # S x B x E
+        # embedded = self.em_dropout(embedded)
+        # packed = torch.nn.utils.rnn.pack_padded_sequence(embedded, input_lengths)
+        # pade_hidden = hidden
+        # pade_outputs, pade_hidden = self.gru_pade(packed, pade_hidden)
+        # pade_outputs, _ = torch.nn.utils.rnn.pad_packed_sequence(pade_outputs)
 
-        problem_output = pade_outputs[-1, :, :self.hidden_size] + pade_outputs[0, :, self.hidden_size:]
-        pade_outputs = pade_outputs[:, :, :self.hidden_size] + pade_outputs[:, :, self.hidden_size:]  # S x B x H
+        # problem_output = pade_outputs[-1, :, :self.hidden_size] + pade_outputs[0, :, self.hidden_size:]
+        # pade_outputs = pade_outputs[:, :, :self.hidden_size] + pade_outputs[:, :, self.hidden_size:]  # S x B x H
+        # pade_outputs = self.enc(**input_seqs)[0]
+        # problem_output = self.sum(pade_outputs)
+
+        input_seqs = input_seqs.transpose(0, 1) # S x B -> B x S
+        pade_outputs = self.enc(input_seqs)[0]  # B x S x E
+        pade_outputs = self.out(pade_outputs)   # B x S x H
+
+        pade_outputs, problem_output = pade_outputs, pade_outputs[:,0,:]
+
+        pade_outputs = pade_outputs.transpose(0, 1)
         return pade_outputs, problem_output
 
 
